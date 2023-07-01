@@ -12,11 +12,11 @@ const getAllConnectedClients = (roomID, io) => {
 };
 
 function ConnectSocket(socket, io) {
-    console.log("socket connnected", socket.id);
+    var clients = [];
     socket.on("join", ({ roomID, userName }) => {
         userSocketMap[socket.id] = userName;
         socket.join(roomID);
-        const clients = getAllConnectedClients(roomID, io);
+        clients = getAllConnectedClients(roomID, io);
         console.log('clients', clients);
         clients.forEach(({ socketID }) => {
             io.to(socketID).emit("joined", {
@@ -26,6 +26,15 @@ function ConnectSocket(socket, io) {
             });
         });
     });
+
+    socket.on("code_change", (payload)=> {
+        console.log('datatata', payload);
+        clients.forEach(({ socketID }) => {
+            io.in(socketID).emit("sync_code", {
+                data: payload.data
+            });
+        });
+    })
 };
 
 module.exports = { ConnectSocket };
